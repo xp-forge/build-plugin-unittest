@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="ISO-8859-15"?>
+<project name="xp-build-plugin-apidoc">
+  <target name="compile"/>
+  <target name="clean"/>
+  <target name="validate"/>
+  <target name="prepare"/>
+  <target name="test" depends="plugin:unittest:run-tests"/>
+  <target name="integration-test"/>
+  <target name="pre-package"/>
+  <target name="package"/>
+  <target name="post-package"/>
+  <target name="verify"/>
+  <target name="install"/>
+  <target name="publish"/>
+
+  <target name="plugin:unittest:prepare">
+    <mkdir dir="${build.target.reports.testresults}"/>
+    <delete>
+      <fileset dir="${build.target.reports.testresults}" includes="*.xml"/>
+    </delete>
+
+    <!-- Check for existance of some unittest .ini -->
+    <pathconvert property="xp.unittest.has.configuration" refid="build.testConfigurations" setonempty="false"/>
+
+    <!-- Check if run-tests-package should be run (should only, if no unittest.ini exists, and
+     !   skip.tests was not set
+     !-->
+    <condition property="xp.unittest.run-tests-package">
+      <and>
+        <isset property="build.testPackage"/>
+        <not><isset property="skip.tests"/></not>
+        <not><isset property="xp.unittest.has.configuration"/></not>
+      </and>
+    </condition>
+
+    <!-- Check if test configuration is availabe... -->
+    <condition property="xp.test.checkconf">
+      <contains string="${ivy.configurations}" substring="test"/>
+    </condition>
+  </target>
+
+  <!-- Run tests from ini -->
+  <target name="plugin:unittest:run-tests-ini" unless="skip.tests" depends="plugin:unittest:prepare" if="xp.unittest.has.configuration">
+    <echo>:: Testing ${ivy.organisation}#${ivy.module} - by configuration</echo>
+
+    <!-- Execute unittest for each .ini file -->
+    <apply
+     executable="unittest"
+     failonerror="true"
+     dir="${build.target}/bootstrap/test/"
+     dest="${build.target.reports.testresults}"
+    >
+      <env key="USE_XP" value="${build.target}/bootstrap/test/"/>
+      <arg value="-l"/>
+      <arg value="unittest.XmlTestListener"/>
+      <chainedmapper>
+        <flattenmapper/>
+        <mapper type="glob" from="*.ini" to="*.xml"/>
+      </chainedmapper>
+      <targetfile/>
+      <srcfile/>
+      <fileset refid="build.testConfigurations"/>
+    </apply>
+  </target>
+
+  <!-- Run tests from package -->
+  <target name="plugin:unittest:run-tests-package" if="xp.unittest.run-tests-package" depends="plugin:unittest:prepare">
+    <echo>===> Testing ${ivy.organisation}#${ivy.module} - by package</echo>
+
+    <!-- Execute unittest -->
+    <exec
+     executable="unittest"
+     failonerror="true"
+     dir="${build.target}/bootstrap/test/"
+    >
+      <env key="USE_XP" value="${build.target}/bootstrap/test/"/>
+      <arg value="-l"/>
+      <arg value="unittest.XmlTestListener"/>
+      <arg value="${build.target.reports.testresults}/package.xml"/>
+      <arg value="${build.testPackage}"/>
+    </exec>
+  </target>
+
+  <target name="plugin:unittest:empty-check" depends="plugin:unittest:prepare">
+    <condition property="xp.unittest.usefallback">
+      <not>
+        <or>
+          <isset property="xp.unittest.has.configuration"/>
+          <isset property="build.testPackage"/>
+        </or>
+      </not>
+    </condition>
+  </target>
+
+  <target name="plugin:unittest:empty" depends="plugin:unittest:empty-check" if="xp.unittest.usefallback">
+    <echo>Creating dummy testresult because no tests were found.</echo>
+    <echo file="${build.target.reports.testresults}/dummy.xml">
+      &lt;testsuites&gt;&lt;testsuite name="(none)" tests="1" failures="0" errors="0" skipped="1"&gt;&lt;testcase name="(none)"/&gt;&lt;/testsuite&gt;&lt;/testsuites&gt;
+    </echo>
+  </target>
+
+  <target name="plugin:unittest:check" depends="plugin:unittest:prepare" unless="xp.test.checkconf">
+    <echo level="warning">"test" configuration required in ivy.xml when running tests.</echo>
+  </target>
+
+  <target name="plugin:unittest:run-tests" depends="plugin:unittest:check, plugin:unittest:run-tests-ini, plugin:unittest:run-tests-package, plugin:unittest:empty"/>
+</project>
