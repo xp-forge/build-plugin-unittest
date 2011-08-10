@@ -13,10 +13,10 @@
   >
   </info>
   <configurations>
-    <conf name="test"/>
+    <conf name="compile"/>
   </configurations>
   <publications>
-    <artifact name="plugin-unittest" type="plugin" ext="zip" conf="test"/>
+    <artifact name="plugin-unittest" type="plugin" ext="zip" conf="compile"/>
   </publications>
   <dependencies>
     <dependency
