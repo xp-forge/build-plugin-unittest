@@ -25,9 +25,13 @@
     <!-- Check if run-tests-package should be run (should only, if no unittest.ini exists, and
      !   skip.tests was not set
      !-->
+    <dirset id="build.testSources" dir="${build.target}" includes="**/unittest"/>
+    <pathconvert property="xp.unittest.has.sources" refid="build.testSources" setonempty="false" dirsep=".">
+      <map from="${build.target.testClasses}/" to=""/>
+    </pathconvert>
     <condition property="xp.unittest.run-tests-package">
       <and>
-        <isset property="build.testPackage"/>
+        <isset property="xp.unittest.has.sources"/>
         <not><isset property="skip.tests"/></not>
         <not><isset property="xp.unittest.has.configuration"/></not>
       </and>
@@ -77,7 +81,7 @@
       <arg value="-l"/>
       <arg value="unittest.XmlTestListener"/>
       <arg value="${build.target.reports.testresults}/package.xml"/>
-      <arg value="${build.testPackage}"/>
+      <arg value="${xp.unittest.has.sources}.**"/>
     </exec>
   </target>
 
@@ -86,7 +90,7 @@
       <not>
         <or>
           <isset property="xp.unittest.has.configuration"/>
-          <isset property="build.testPackage"/>
+          <isset property="xp.unittest.has.sources"/>
         </or>
       </not>
     </condition>
