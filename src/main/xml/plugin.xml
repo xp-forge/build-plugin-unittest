@@ -26,7 +26,7 @@
      !   skip.tests was not set
      !-->
     <dirset id="build.testSources" dir="${build.target}" includes="**/unittest"/>
-    <pathconvert property="xp.unittest.has.sources" refid="build.testSources" setonempty="false" dirsep=".">
+    <pathconvert property="xp.unittest.has.sources" refid="build.testSources" setonempty="false" dirsep="." pathsep=".** ">
       <map from="${build.target.testClasses}/" to=""/>
     </pathconvert>
     <condition property="xp.unittest.run-tests-package">
@@ -81,7 +81,7 @@
       <arg value="-l"/>
       <arg value="unittest.XmlTestListener"/>
       <arg value="${build.target.reports.testresults}/package.xml"/>
-      <arg value="${xp.unittest.has.sources}.**"/>
+      <arg line="${xp.unittest.has.sources}.**"/>
     </exec>
   </target>
 
