@@ -45,14 +45,17 @@
 
   <!-- Run tests from ini -->
   <target name="plugin:unittest:run-tests-ini" unless="skip.tests" depends="plugin:unittest:prepare" if="xp.unittest.has.configuration">
-    <echo>:: Testing ${ivy.organisation}#${ivy.module} - by configuration</echo>
+    <echo>===> Testing ${ivy.organisation}#${ivy.module} - by configuration</echo>
 
     <!-- Execute unittest for each .ini file -->
     <apply
      executable="unittest"
-     failonerror="true"
+     failonerror="false"
      dir="${build.target}/bootstrap/test/"
      dest="${build.target.reports.testresults}"
+     outputproperty="unittest.stdout"
+     errorproperty="unittest.stderr"
+     resultproperty="unittest.exitCode"
     >
       <env key="USE_XP" value="${build.target}/bootstrap/test/"/>
       <arg value="-l"/>
@@ -65,6 +68,14 @@
       <srcfile/>
       <fileset refid="build.testConfigurations"/>
     </apply>
+    <echo level="warning">${unittest.stdout}</echo>
+    <echo level="error">${unittest.stderr}</echo>
+    <if>
+      <not><equals arg1="${unittest.exitCode}" arg2="0"/></not>
+      <then>
+        <fail>!==> Unittest indicated failure (exitCode: ${unittest.exitCode})!</fail>
+      </then>
+    </if>
   </target>
 
   <!-- Run tests from package -->
@@ -74,8 +85,11 @@
     <!-- Execute unittest -->
     <exec
      executable="unittest"
-     failonerror="true"
+     failonerror="false"
      dir="${build.target}/bootstrap/test/"
+     outputproperty="unittest.stdout"
+     errorproperty="unittest.stderr"
+     resultproperty="unittest.exitCode"
     >
       <env key="USE_XP" value="${build.target}/bootstrap/test/"/>
       <arg value="-l"/>
@@ -83,6 +97,14 @@
       <arg value="${build.target.reports.testresults}/package.xml"/>
       <arg line="${xp.unittest.has.sources}.**"/>
     </exec>
+    <echo level="warning">${unittest.stdout}</echo>
+    <echo level="error">${unittest.stderr}</echo>
+    <if>
+      <not><equals arg1="${unittest.exitCode}" arg2="0"/></not>
+      <then>
+        <fail>!==> Unittest indicated failure (exitCode: ${unittest.exitCode})!</fail>
+      </then>
+    </if>
   </target>
 
   <target name="plugin:unittest:empty-check" depends="plugin:unittest:prepare">
