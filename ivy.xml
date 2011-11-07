@@ -9,7 +9,7 @@
    organisation="net.xp_framework.build"
    module="plugin-unittest"
    status="integration"
-   revision="1.0.1"
+   revision="1.0.2"
   >
   </info>
   <configurations>
