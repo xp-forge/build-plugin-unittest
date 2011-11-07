@@ -29,6 +29,7 @@
     <pathconvert property="xp.unittest.has.sources" refid="build.testSources" setonempty="false" dirsep="." pathsep=".** ">
       <map from="${build.target.testClasses}/" to=""/>
     </pathconvert>
+
     <condition property="xp.unittest.run-tests-package">
       <and>
         <isset property="xp.unittest.has.sources"/>
@@ -43,16 +44,15 @@
     </condition>
   </target>
 
-  <!-- Run tests from ini -->
-  <target name="plugin:unittest:run-tests-ini" unless="skip.tests" depends="plugin:unittest:prepare" if="xp.unittest.has.configuration">
-    <echo>===> Testing ${ivy.organisation}#${ivy.module} - by configuration</echo>
+  <target name="-plugin:unittest:run-tests-by-arg">
+    <!-- Execute unittest -->
+    <basename file="${line}" property="basename"/>
+    <echo>> Running tests from ${line}</echo>
 
-    <!-- Execute unittest for each .ini file -->
-    <apply
+    <exec
      executable="unittest"
      failonerror="false"
      dir="${build.target}/bootstrap/test/"
-     dest="${build.target.reports.testresults}"
      outputproperty="unittest.stdout"
      errorproperty="unittest.stderr"
      resultproperty="unittest.exitCode"
@@ -60,22 +60,37 @@
       <env key="USE_XP" value="${build.target}/bootstrap/test/"/>
       <arg value="-l"/>
       <arg value="unittest.XmlTestListener"/>
-      <chainedmapper>
-        <flattenmapper/>
-        <mapper type="glob" from="*.ini" to="*.xml"/>
-      </chainedmapper>
-      <targetfile/>
-      <srcfile/>
-      <fileset refid="build.testConfigurations"/>
-    </apply>
-    <echo level="warning">${unittest.stdout}</echo>
-    <echo level="error">${unittest.stderr}</echo>
+      <arg value="${build.target.reports.testresults}/${basename}.xml"/>
+      <arg line="${line}"/>
+    </exec>
+    <if>
+      <not><equals arg1="" arg2="${unittest.stdout}" trim="true"/></not>
+      <then><echo level="warning">${unittest.stdout}</echo></then>
+    </if>
+    <if>
+      <not><equals arg1="" arg2="${unittest.stderr}" trim="true"/></not>
+      <then><echo level="error">${unittest.stderr}</echo></then>
+    </if>
+
     <if>
       <not><equals arg1="${unittest.exitCode}" arg2="0"/></not>
       <then>
         <fail>!==> Unittest indicated failure (exitCode: ${unittest.exitCode})!</fail>
       </then>
     </if>
+    <echo></echo>
+  </target>
+
+  <!-- Run tests from ini -->
+  <target name="plugin:unittest:run-tests-ini" unless="skip.tests" depends="plugin:unittest:prepare" if="xp.unittest.has.configuration">
+    <echo>===> Testing ${ivy.organisation}#${ivy.module} - by configuration</echo>
+
+    <!-- Exec unittest for each testConfiguration file -->
+    <foreach target="-plugin:unittest:run-tests-by-arg" param="line" inheritall="true">
+      <path>
+        <fileset refid="build.testConfigurations"/>
+      </path>
+    </foreach>
   </target>
 
   <!-- Run tests from package -->
@@ -97,14 +112,22 @@
       <arg value="${build.target.reports.testresults}/package.xml"/>
       <arg line="${xp.unittest.has.sources}.**"/>
     </exec>
-    <echo level="warning">${unittest.stdout}</echo>
-    <echo level="error">${unittest.stderr}</echo>
+    <if>
+      <not><equals arg1="" arg2="${unittest.stdout}" trim="true"/></not>
+      <then><echo level="warning">${unittest.stdout}</echo></then>
+    </if>
+    <if>
+      <not><equals arg1="" arg2="${unittest.stderr}" trim="true"/></not>
+      <then><echo level="error">${unittest.stderr}</echo></then>
+    </if>
+
     <if>
       <not><equals arg1="${unittest.exitCode}" arg2="0"/></not>
       <then>
         <fail>!==> Unittest indicated failure (exitCode: ${unittest.exitCode})!</fail>
       </then>
     </if>
+    <echo></echo>
   </target>
 
   <target name="plugin:unittest:empty-check" depends="plugin:unittest:prepare">
@@ -119,7 +142,7 @@
   </target>
 
   <target name="plugin:unittest:empty" depends="plugin:unittest:empty-check" if="xp.unittest.usefallback">
-    <echo>Creating dummy testresult because no tests were found.</echo>
+    <echo>===> Creating dummy testresult - no tests were found.</echo>
     <echo file="${build.target.reports.testresults}/dummy.xml">
       &lt;testsuites&gt;&lt;testsuite name="(none)" tests="1" failures="0" errors="0" skipped="1"&gt;&lt;testcase name="(none)"/&gt;&lt;/testsuite&gt;&lt;/testsuites&gt;
     </echo>
