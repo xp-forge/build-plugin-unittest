@@ -25,7 +25,7 @@
     <!-- Check if run-tests-package should be run (should only, if no unittest.ini exists, and
      !   skip.tests was not set
      !-->
-    <dirset id="build.testSources" dir="${build.target}" includes="**/unittest/**" excludes="**/integration/**"/>
+    <dirset id="build.testSources" dir="${build.target.testClasses}" includes="**/unittest/**" excludes="**/integration/**"/>
     <pathconvert property="xp.unittest.has.sources" refid="build.testSources" setonempty="false" dirsep="." pathsep=".* ">
       <map from="${build.target.testClasses}/" to=""/>
     </pathconvert>
