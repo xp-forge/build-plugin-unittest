@@ -9,9 +9,8 @@
    organisation="net.xp_framework.build"
    module="plugin-unittest"
    status="integration"
-   revision="1.0.3"
-  >
-  </info>
+   revision="1.0.4"
+  />
   <configurations>
     <conf name="compile"/>
   </configurations>
