@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="ISO-8859-15"?>
-<project name="xp-build-plugin-apidoc">
+<project name="xp-build-plugin-unittest">
   <target name="compile"/>
   <target name="clean"/>
   <target name="validate"/>
   <target name="prepare"/>
   <target name="test" depends="plugin:unittest:run-tests"/>
   <target name="integration-test"/>
+  <target name="ci-metrics"/>
   <target name="pre-package"/>
   <target name="package"/>
   <target name="post-package"/>
